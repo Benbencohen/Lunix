@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Ubuntu OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@4.18.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@4.18.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>
+    <style>
+        body {
+            font-family: 'Rubik', sans-serif;
+            background-color: #4c1d95;
+            background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            user-select: none;
+        }
+        .window {
+            min-width: 300px;
+            min-height: 200px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border: 1px solid #4a4a4a;
+            resize: both;
+            overflow: auto;
+        }
+        .window-header {
+            cursor: move;
+        }
+        .desktop-icon {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .desktop-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .xterm .xterm-viewport {
+            direction: ltr;
+        }
+    </style>
+</head>
+<body class="w-screen h-screen">
+    <!-- Main Desktop -->
+    <div id="desktop" class="w-full h-full">
+        <!-- Desktop Icons -->
+        <div class="absolute top-8 right-8 flex flex-col items-center space-y-4">
+            <div id="terminal-icon" class="desktop-icon text-white text-center p-2 rounded-lg w-24">
+                <i class="fas fa-terminal fa-3x"></i>
+                <p class="mt-2 text-sm">טרמינל אמיתי</p>
+            </div>
+             <div id="about-icon" class="desktop-icon text-white text-center p-2 rounded-lg w-24">
+                <i class="fas fa-info-circle fa-3x"></i>
+                <p class="mt-2 text-sm">אודות</p>
+            </div>
+        </div>
+
+        <!-- Taskbar -->
+        <div class="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 h-12 flex items-center justify-between px-4 text-white">
+            <div>
+                <span id="user-display" class="font-bold">User@WebOS</span>
+            </div>
+            <div id="clock" class="text-sm"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const desktop = document.getElementById('desktop');
+            const clock = document.getElementById('clock');
+            
+            // --- Window Management ---
+            let zIndexCounter = 10;
+            function makeWindowDraggable(windowEl) {
+                const header = windowEl.querySelector('.window-header');
+                let isDragging = false;
+                let offsetX, offsetY;
+
+                header.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    offsetX = e.clientX - windowEl.offsetLeft;
+                    offsetY = e.clientY - windowEl.offsetTop;
+                    windowEl.style.zIndex = ++zIndexCounter;
+                    document.querySelectorAll('.window').forEach(w => w.classList.remove('border-purple-500'));
+                    windowEl.classList.add('border-purple-500');
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        windowEl.style.left = `${e.clientX - offsetX}px`;
+                        windowEl.style.top = `${e.clientY - offsetY}px`;
+                    }
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                });
+                
+                windowEl.addEventListener('mousedown', () => {
+                   windowEl.style.zIndex = ++zIndexCounter;
+                   document.querySelectorAll('.window').forEach(w => w.classList.remove('border-purple-500'));
+                   windowEl.classList.add('border-purple-500');
+                });
+            }
+
+            function createWindow(id, title, content, onWindowClose) {
+                if (document.getElementById(id)) {
+                    const existingWindow = document.getElementById(id);
+                    existingWindow.style.zIndex = ++zIndexCounter;
+                    existingWindow.classList.add('border-purple-500');
+                    return;
+                }
+
+                const windowEl = document.createElement('div');
+                windowEl.id = id;
+                windowEl.className = 'window absolute bg-gray-800 bg-opacity-90 backdrop-blur-sm text-white rounded-lg flex flex-col border-2 border-transparent';
+                windowEl.style.left = `${Math.random() * (window.innerWidth - 600)}px`;
+                windowEl.style.top = `${Math.random() * (window.innerHeight - 400)}px`;
+                windowEl.style.width = '600px';
+                windowEl.style.height = '400px';
+                windowEl.style.zIndex = ++zIndexCounter;
+
+                windowEl.innerHTML = `
+                    <div class="window-header bg-gray-900 p-2 rounded-t-lg flex justify-between items-center">
+                        <span class="font-bold">${title}</span>
+                        <div>
+                            <button class="close-btn text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <div class="window-content p-2 flex-grow">${content}</div>
+                `;
+
+                desktop.appendChild(windowEl);
+                makeWindowDraggable(windowEl);
+
+                windowEl.querySelector('.close-btn').addEventListener('click', () => {
+                    if (onWindowClose) {
+                        onWindowClose();
+                    }
+                    windowEl.remove();
+                });
+                
+                return windowEl;
+            }
+
+            // --- Real Terminal App (via WebSocket) ---
+            function createTerminal() {
+                const termContainerId = 'terminal-content';
+                let ws;
+
+                const onWindowClose = () => {
+                    if (ws) {
+                        ws.close();
+                        console.log("WebSocket connection closed.");
+                    }
+                };
+
+                const windowEl = createWindow('terminal-window', 'טרמינל', `<div id="${termContainerId}" class="w-full h-full"></div>`, onWindowClose);
+                if (!windowEl) return; 
+
+                const term = new Terminal({
+                    cursorBlink: true,
+                    theme: {
+                        background: '#1f2937',
+                        foreground: '#d1d5db',
+                    },
+                    fontFamily: 'monospace',
+                });
+                const fitAddon = new FitAddon.FitAddon();
+                term.loadAddon(fitAddon);
+                term.open(document.getElementById(termContainerId));
+                fitAddon.fit();
+
+                // Establish WebSocket connection
+                const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+                const wsUrl = `${protocol}://${window.location.host}`;
+                ws = new WebSocket(wsUrl);
+
+                ws.onopen = () => {
+                    console.log('WebSocket connection established.');
+                    term.writeln('Connected to real backend shell...');
+                };
+
+                // When data is received from the server, write it to the terminal
+                ws.onmessage = (event) => {
+                    term.write(event.data);
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket Error:', error);
+                    term.writeln('\r\n\x1b[31mConnection error. Is the backend server running?\x1b[0m');
+                };
+
+                ws.onclose = () => {
+                    console.log('WebSocket connection closed.');
+                    term.writeln('\r\n\x1b[31mConnection to backend closed.\x1b[0m');
+                };
+
+                // When the user types in the terminal, send the input to the server
+                term.onData((data) => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        ws.send(data);
+                    }
+                });
+            }
+            
+            // --- About App ---
+            function createAboutWindow() {
+                const content = `
+                    <div class="text-center p-4">
+                        <h2 class="text-2xl font-bold mb-2">Web OS - v2.0</h2>
+                        <p class="text-gray-300">גרסה 2.0 - מחובר ל-Backend אמיתי</p>
+                        <p class="mt-4">הממשק רץ בדפדפן, אך הטרמינל מחובר למעטפת לינוקס אמיתית בשרת באמצעות WebSockets.</p>
+                        <p class="mt-6 font-bold">שודרג על ידי Gemini בהתאם למשוב</p>
+                    </div>
+                `;
+                createWindow('about-window', 'אודות', content);
+            }
+
+            // --- Event Listeners & Initialization ---
+            function updateClock() {
+                const now = new Date();
+                clock.textContent = now.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+            }
+
+            document.getElementById('terminal-icon').addEventListener('dblclick', createTerminal);
+            document.getElementById('about-icon').addEventListener('dblclick', createAboutWindow);
+
+            setInterval(updateClock, 1000);
+            updateClock();
+        });
+    </script>
+</body>
+</html>
