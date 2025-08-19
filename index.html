@@ -175,15 +175,11 @@
                 term.open(document.getElementById(termContainerId));
                 fitAddon.fit();
 
-                // Establish WebSocket connection
+                // Establish WebSocket connection dynamically
                 const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-                const wsUrl = 'wss://lunix-backend.onrender.com';
+                // Use the same host as the web page, so it works on localhost and Render
+                const wsUrl = `${protocol}://${window.location.host}`; 
                 ws = new WebSocket(wsUrl);
-
-                ws.onopen = () => {
-                    console.log('WebSocket connection established.');
-                    term.writeln('Connected to real backend shell...');
-                };
 
                 // When data is received from the server, write it to the terminal
                 ws.onmessage = (event) => {
