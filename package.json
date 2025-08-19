@@ -1,0 +1,17 @@
+{
+  "name": "lunix-backend",
+  "version": "1.0.0",
+  "description": "Backend for Web OS Terminal",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.13.0",
+    "node-pty": "^0.10.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
