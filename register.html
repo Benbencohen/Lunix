@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>הרשמה - Web OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center h-screen">
+    <div class="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-center">יצירת חשבון חדש</h1>
+        <form action="/register" method="POST">
+            <div>
+                <label for="email" class="block mb-2 text-sm font-medium">אימייל</label>
+                <input type="email" name="email" id="email" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+            </div>
+            <div>
+                <label for="password" class="block mt-4 mb-2 text-sm font-medium">סיסמה</label>
+                <input type="password" name="password" id="password" class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+            </div>
+            <button type="submit" class="w-full px-4 py-2 mt-6 font-bold text-white bg-purple-600 rounded-md hover:bg-purple-700">הרשמה</button>
+        </form>
+        <p class="text-sm text-center">יש לך כבר חשבון? <a href="/login" class="text-purple-400 hover:underline">התחבר כאן</a></p>
+    </div>
+</body>
+</html>
